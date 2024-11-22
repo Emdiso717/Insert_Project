@@ -70,7 +70,7 @@ export default {
     goToDetailPage(item) {
       // 跳转到详情页面
       this.$router.push({
-        path: '/details',
+        path: '/result',
         query: {searchQuery: this.searchQuery},
       });
     }
@@ -112,14 +112,14 @@ export default {
         <el-input
             v-model="searchQuery"
             placeholder="输入关键词"
-            @keyup.enter.native="Search()"
+            @keyup.enter.native="Search"
             clearable>
         </el-input>
         <el-select v-model="searchType" class="search-select" placeholder="选择搜索方式">
-          <el-option label="精准搜索" :value="exact"></el-option>
+          <el-option label="精准搜索" value="exact"></el-option>
           <el-option label="模糊搜索" value="fuzzy"></el-option>
         </el-select>
-        <el-button @click="Search()">搜索</el-button>
+        <el-button @click="Search">搜索</el-button>
       </div>
       <!-- 搜索结果展示 -->
       <el-list>
@@ -127,19 +127,17 @@ export default {
           <el-card class="result-card" @click="goToDetailPage(searchResult)">
             <div style="display: flex; align-items: center;">
               <div style="flex: 1;">
-                <h3>搜索结果：</h3>
                 <p>
                   <a
                       href="javascript:void(0);"
                       style="text-decoration: underline; color: blue;"
-                      @click="viewFullResult"
+                      @click="goToDetailPage(searchResult)"
                   >
                     {{ searchQuery }}
                   </a>
                 </p>
                 <p style="color: #000000;">{{ truncatedResult }}</p>
               </div>
-              <img :src="item.image_url" alt="Image" style="max-height: 100px; max-width: 100px; margin-left: 20px;">
             </div>
           </el-card>
         </template>
