@@ -1,6 +1,7 @@
 <script>
 import {HomeFilled, List, UserFilled} from "@element-plus/icons-vue";
 import axios from "axios";
+import wikipedia from "wikipedia"; // 引入wikipedia模块
 
 export default {
   components: {List, UserFilled, HomeFilled},
@@ -11,145 +12,19 @@ export default {
       //搜索框的输入
       searchQuery: '',
       //搜索的类型，比如学名搜索，描述搜索等,S代表标准（学名搜索），I代表图片搜索，A代表AI搜索
-      selectedSearch: 'S',
-      searchStatus : {
-        S : "S",
-        I : "I",
-        A : "A",
+      searchType: 'exact',
+      searchStatus: {
+        S: "S",
+        I: "I",
+        A: "A",
       },
-      //存储搜索结果
-      searchResults: [
-        {
-          //俗名
-          Common_name: "蟑螂",
-          //中文学名
-          Chinese_name: "蜚蠊",
-          //拉丁文学名
-          Latin_name: "Blattodea",
-          //别名
-          Alias_name: "黄嚓、曱甴、小强、黄婆娘、偷油婆、鞋板虫、油灶婆、滑虫",
-
-          //界门纲目科属种依次：
-          Kingdom: "动物界",
-          Phylum: "节肢动物门",
-          Class: "昆虫纲",
-          Order: "蜚蠊目",
-          Family: "蜚蠊科",
-          Genus: "",
-          Species: "",
-          othertax: [
-            //   总/超，亚，次/下的各种分类，可有可无，总:super-;亚:sub;次/下:infra
-            {
-              title : "亚门",
-              tax: "六足亚门"
-            },
-            {
-              title : "亚纲",
-              tax: "有翅亚纲"
-            },
-          ],
-
-          //其他各类描述,title为这个描述的题目，value为这个描述的内容，如："形态特征"为title，其内容为value
-          attributes: [
-              {
-                title : "形态特征",
-                value : "蟑螂是蜚蠊目蜚蠊科的昆虫。 其背部扁平；身体长而多节，有丝状触角；前胸背板大、如盾状；有皮革质前翅；后翅膜质，静止时呈扇状折叠；翅膀有的长、有的短、有的则完全无翅；尾须多节；雄性蟑螂腹部末节长有节芒（有的种类节芒退化或没有）。 此虫气如廉姜，又名“飞廉”。\n" +
-                    "曾经有生物学家根据蟑螂的生态习性下了一个定论：如果有一天地球上发生了全球核子大战，在影响区内的所有生物包括人类和甚至鱼类等都会消失殆尽，只有蟑螂会继续它们的生活，这是因为通常情况下人类身体所能忍受的放射量为5rems，一旦总辐射量超过800rems则必死无疑。而德国小蠊可以忍受9000~105000rems，美洲大蠊则达到967500rem。（表示辐射剂量。rem剂量当量雷姆(rem) 希[沃特](Sv) 1Sv=100rem）所以即使有核子爆炸，蟑螂也可以幸存下来。美国政府用来消灭蟑螂一年的费用就达到15亿美元，大约是用在防治艾滋病预算的两倍。"
-              },
-
-          ],
-          //图片url
-          image_url : "https://cdn.pixabay.com/photo/2014/12/13/15/38/cockroach-566712_1280.jpg"
-        },
-        {
-          //俗名
-          Common_name: "蟑螂",
-          //中文学名
-          Chinese_name: "蜚蠊",
-          //拉丁文学名
-          Latin_name: "Blattodea",
-          //别名
-          Alias_name: "黄嚓、曱甴、小强、黄婆娘、偷油婆、鞋板虫、油灶婆、滑虫",
-
-          //界门纲目科属种依次：
-          Kingdom: "动物界",
-          Phylum: "节肢动物门",
-          Class: "昆虫纲",
-          Order: "蜚蠊目",
-          Family: "蜚蠊科",
-          Genus: "",
-          Species: "",
-          othertax: [
-            //   总/超，亚，次/下的各种分类，可有可无，总:super-;亚:sub;次/下:infra
-            {
-              title : "亚门",
-              tax: "六足亚门"
-            },
-            {
-              title : "亚纲",
-              tax: "有翅亚纲"
-            },
-          ],
-
-          //其他各类描述,title为这个描述的题目，value为这个描述的内容，如："形态特征"为title，其内容为value
-          attributes: [
-              {
-                title : "形态特征",
-                value : "蟑螂是蜚蠊目蜚蠊科的昆虫。 其背部扁平；身体长而多节，有丝状触角；前胸背板大、如盾状；有皮革质前翅；后翅膜质，静止时呈扇状折叠；翅膀有的长、有的短、有的则完全无翅；尾须多节；雄性蟑螂腹部末节长有节芒（有的种类节芒退化或没有）。 此虫气如廉姜，又名“飞廉”。\n" +
-                    "曾经有生物学家根据蟑螂的生态习性下了一个定论：如果有一天地球上发生了全球核子大战，在影响区内的所有生物包括人类和甚至鱼类等都会消失殆尽，只有蟑螂会继续它们的生活，这是因为通常情况下人类身体所能忍受的放射量为5rems，一旦总辐射量超过800rems则必死无疑。而德国小蠊可以忍受9000~105000rems，美洲大蠊则达到967500rem。（表示辐射剂量。rem剂量当量雷姆(rem) 希[沃特](Sv) 1Sv=100rem）所以即使有核子爆炸，蟑螂也可以幸存下来。美国政府用来消灭蟑螂一年的费用就达到15亿美元，大约是用在防治艾滋病预算的两倍。"
-              },
-
-          ],
-          //图片url
-          image_url : "https://cdn.pixabay.com/photo/2014/12/13/15/38/cockroach-566712_1280.jpg"
-        },
-          {
-          //俗名
-          Common_name: "蟑螂",
-          //中文学名
-          Chinese_name: "蜚蠊",
-          //拉丁文学名
-          Latin_name: "Blattodea",
-          //别名
-          Alias_name: "黄嚓、曱甴、小强、黄婆娘、偷油婆、鞋板虫、油灶婆、滑虫",
-
-          //界门纲目科属种依次：
-          Kingdom: "动物界",
-          Phylum: "节肢动物门",
-          Class: "昆虫纲",
-          Order: "蜚蠊目",
-          Family: "蜚蠊科",
-          Genus: "",
-          Species: "",
-          othertax: [
-            //   总/超，亚，次/下的各种分类，可有可无，总:super-;亚:sub;次/下:infra
-            {
-              title : "亚门",
-              tax: "六足亚门"
-            },
-            {
-              title : "亚纲",
-              tax: "有翅亚纲"
-            },
-          ],
-
-          //其他各类描述,title为这个描述的题目，value为这个描述的内容，如："形态特征"为title，其内容为value
-          attributes: [
-              {
-                title : "形态特征",
-                value : "蟑螂是蜚蠊目蜚蠊科的昆虫。 其背部扁平；身体长而多节，有丝状触角；前胸背板大、如盾状；有皮革质前翅；后翅膜质，静止时呈扇状折叠；翅膀有的长、有的短、有的则完全无翅；尾须多节；雄性蟑螂腹部末节长有节芒（有的种类节芒退化或没有）。 此虫气如廉姜，又名“飞廉”。\n" +
-                    "曾经有生物学家根据蟑螂的生态习性下了一个定论：如果有一天地球上发生了全球核子大战，在影响区内的所有生物包括人类和甚至鱼类等都会消失殆尽，只有蟑螂会继续它们的生活，这是因为通常情况下人类身体所能忍受的放射量为5rems，一旦总辐射量超过800rems则必死无疑。而德国小蠊可以忍受9000~105000rems，美洲大蠊则达到967500rem。（表示辐射剂量。rem剂量当量雷姆(rem) 希[沃特](Sv) 1Sv=100rem）所以即使有核子爆炸，蟑螂也可以幸存下来。美国政府用来消灭蟑螂一年的费用就达到15亿美元，大约是用在防治艾滋病预算的两倍。"
-              },
-
-          ],
-          //图片url
-          image_url : "https://cdn.pixabay.com/photo/2014/12/13/15/38/cockroach-566712_1280.jpg"
-        },
-      ]
+      searchResult: "", // 原始搜索结果
+      truncatedResult: "", // 截取后的搜索结果
     }
   },
   created() {
     this.account = this.$route.query.account;
+    wikipedia.setLang("zh");
   },
   methods: {
     changeRoute(path) {
@@ -161,28 +36,44 @@ export default {
     },
 
     //搜索
-    async Search(status) {
+    async Search() {
       try {
-        const response = await axios.get('url', {
-          params: {
-            //搜索的关键词
-            query: this.searchQuery,
-            //是什么搜索，S代表标准（学名搜索），I代表图片搜索，A代表AI搜索
-            status: status
-          }
-        });
-        this.searchResults = response.data.results; // 假定 API 返回结果在 data.results
+        if (!this.searchQuery) {
+          this.searchResult = "请输入搜索关键词！";
+          this.truncatedResult = "";
+          return;
+        }
+
+        // 调用 API 并获取数据
+        const response = await wikipedia.page(this.searchQuery);
+        const summary = await response.summary();
+        this.searchResult = summary.extract; // 原始结果
+        this.truncatedResult = this.getFirstLines(summary.extract, 3); // 截取前三行
       } catch (error) {
-        console.error('搜索失败:', error);
+        if (error.name === "PageError") {
+          this.searchResult = "未找到相关内容，请尝试其他关键词。";
+        } else if (error.name === "DisambiguationError") {
+          this.searchResult = "关键词过于模糊，请尝试更具体的搜索内容。";
+        } else {
+          this.searchResult = `搜索失败：${error.message}`;
+        }
+        this.truncatedResult = ""; // 确保失败时不显示内容
       }
     },
+    //截取前三行
+    getFirstLines(text, numLines) {
+      return text
+          .split("\n") // 按换行符分割
+          .slice(0, numLines) // 截取前 numLines 行
+          .join("\n"); // 再拼接回字符串
+    },
     goToDetailPage(item) {
-    // 跳转到详情页面
-    this.$router.push({
-      path: '/result',
-      query: { name: item.Common_name }
-    });
-  }
+      // 跳转到详情页面
+      this.$router.push({
+        path: '/details',
+        query: {searchQuery: this.searchQuery},
+      });
+    }
   },
 
 }
@@ -221,25 +112,32 @@ export default {
         <el-input
             v-model="searchQuery"
             placeholder="输入关键词"
-            @keyup.enter.native="Search(selectedSearch)"
+            @keyup.enter.native="Search()"
             clearable>
         </el-input>
-        <el-select v-model="selectedSearch" class="search-select" placeholder="选择搜索方式">
-          <el-option label="学名搜索" :value="searchStatus.S"></el-option>
-          <el-option label="图片搜索" value="searchStatus.I"></el-option>
-          <el-option label="AI搜索" value="searchStatus.A"></el-option>
+        <el-select v-model="searchType" class="search-select" placeholder="选择搜索方式">
+          <el-option label="精准搜索" :value="exact"></el-option>
+          <el-option label="模糊搜索" value="fuzzy"></el-option>
         </el-select>
-        <el-button @click="Search(selectedSearch)">搜索</el-button>
+        <el-button @click="Search()">搜索</el-button>
       </div>
-
+      <!-- 搜索结果展示 -->
       <el-list>
-        <template v-for="(item, index) in searchResults" :key="index">
-          <el-card class="result-card" @click="goToDetailPage(item)">
+        <template v-if="searchResult">
+          <el-card class="result-card" @click="goToDetailPage(searchResult)">
             <div style="display: flex; align-items: center;">
               <div style="flex: 1;">
-                <h3>{{ item.Common_name }}</h3>
-                <p>{{ item.Chinese_name }} ({{ item.Latin_name }})</p>
-                <p>别名: {{ item.Alias_name }}</p>
+                <h3>搜索结果：</h3>
+                <p>
+                  <a
+                      href="javascript:void(0);"
+                      style="text-decoration: underline; color: blue;"
+                      @click="viewFullResult"
+                  >
+                    {{ searchQuery }}
+                  </a>
+                </p>
+                <p style="color: #000000;">{{ truncatedResult }}</p>
               </div>
               <img :src="item.image_url" alt="Image" style="max-height: 100px; max-width: 100px; margin-left: 20px;">
             </div>
@@ -323,7 +221,7 @@ export default {
   margin-right: 10px;
 }
 
-.el-input{
+.el-input {
   margin-right: 10px;
   width: 600px;
 }
@@ -335,7 +233,7 @@ export default {
   margin-top: 20px;
 }
 
- .search-select {
+.search-select {
   margin-right: 10px;
   width: 300px; /* 设置宽度 */
 }
