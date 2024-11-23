@@ -2,6 +2,7 @@
 import {HomeFilled, List, UserFilled} from "@element-plus/icons-vue";
 import axios from "axios";
 import wikipedia from "wikipedia";
+import {ElMessage} from "element-plus";
 
 export default {
   components: {List, UserFilled, HomeFilled},
@@ -12,7 +13,8 @@ export default {
       //搜索框的输入
       searchQuery: '',
       //搜索的类型，比如学名搜索，描述搜索等,S代表标准（学名搜索），I代表图片搜索，A代表AI搜索
-      fullContent: "", // 存储完整搜索内容
+      insectData: null, // 用来存储后端返回的数据
+      error: null, // 用来存储错误信息
     }
   },
   created() {
@@ -22,11 +24,21 @@ export default {
   methods: {
     async fetchFullContent() {
       try {
-        const response = await wikipedia.page(this.searchQuery);
-        const summary = await response.summary();
-        this.fullContent = summary.extract; // 获取完整内容
-      } catch (error) {
-        this.fullContent = `无法加载内容：${error.message}`;
+        const response = await axios.get("/search_insect", {
+            params: {
+              name: this.searchQuery
+            }
+        })
+        this.insectData = response.data; // 存储后端返回的数据
+        console.log(this.insectData.image_url);
+      }catch (error) {
+        if (error.response) {
+          // 后端返回了错误信息
+          this.error = error.response.data.error || "未知错误";
+        } else {
+          // 网络错误或请求配置错误
+          this.error = "请求失败，请检查网络连接";
+        }
       }
     },
   },
@@ -63,8 +75,53 @@ export default {
     </el-aside>
     <el-main class="main">
       <!--   TODO     代码添加在这里-->
-      <h2>{{ searchQuery }}</h2>
-      <p style="white-space: pre-wrap; color: #000;">{{ fullContent }}</p>
+<!--      <el-descriptions v-if="insectData" class="margin-top" title="this信息" :column="1">-->
+<!--        <el-descriptions-item label="中文名：">{{ insectData.chinese_name }}</el-descriptions-item>-->
+<!--        <el-descriptions-item label="拉丁名：">{{ insectData.latin_name }}</el-descriptions-item>-->
+<!--        <el-descriptions-item label="俗名：">{{ insectData.common_name }}</el-descriptions-item>-->
+<!--        <el-descriptions-item label="别名：">{{ insectData.aliases }}</el-descriptions-item>-->
+<!--        <el-descriptions-item label="外观：">{{ insectData.appearance }}</el-descriptions-item>-->
+<!--        <el-descriptions-item label="习性：">{{ insectData.habits }}</el-descriptions-item>-->
+<!--        <el-descriptions-item label="近亲：">{{ insectData.relatives }}</el-descriptions-item>-->
+<!--        <el-descriptions-item label="分布：">{{ insectData.distribution }}</el-descriptions-item>-->
+<!--      </el-descriptions>-->
+<!--      <el-row class="image-row">-->
+<!--        <el-col :span="12">-->
+<!--          <el-image v-if="insectData.image_url" :src="insectData.image_url" fit="contain" class="insect-image"/>-->
+<!--        </el-col>-->
+<!--      </el-row>-->
+      <el-row class="margin-top">
+        <!-- 左侧部分：信息显示 -->
+        <el-col :span="16">
+          <el-descriptions v-if="insectData" class="margin-top" title="详情" :column="1">
+            <el-descriptions-item label="中文名：">{{ insectData.chinese_name }}</el-descriptions-item>
+            <el-descriptions-item label="拉丁名：">{{ insectData.latin_name }}</el-descriptions-item>
+            <el-descriptions-item label="俗名：">{{ insectData.common_name }}</el-descriptions-item>
+            <el-descriptions-item label="别名：">{{ insectData.aliases }}</el-descriptions-item>
+            <el-descriptions-item label="外观：">{{ insectData.appearance }}</el-descriptions-item>
+            <el-descriptions-item label="习性：">{{ insectData.habits }}</el-descriptions-item>
+            <el-descriptions-item label="近亲：">{{ insectData.relatives }}</el-descriptions-item>
+            <el-descriptions-item label="分布：">{{ insectData.distribution }}</el-descriptions-item>
+
+            <el-descriptions-item label="分类 (Taxonomy)">
+              <div v-if="insectData.taxonomy">
+                <div v-for="(value, key) in insectData.taxonomy" :key="key" >
+                  <div :style="{ marginLeft: '20px' }"><strong>{{ key }}:</strong> {{ value }}</div>
+                </div>
+              </div>
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-col>
+
+        <!-- 右侧部分：图片显示 -->
+        <el-col :span="5">
+          <el-row class="image-row">
+            <el-col :span="24">
+              <el-image v-if="insectData && insectData.image_url" :src="insectData.image_url" fit="contain" class="insect-image"/>
+            </el-col>
+          </el-row>
+        </el-col>
+      </el-row>
 
     </el-main>
   </el-container>
@@ -135,5 +192,15 @@ export default {
   height: 92%;
 }
 
+.image-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.insect-image {
+  width: 100%;          /* 使图片宽度充满父容器 */
+  height: auto;         /* 高度自动调整，保持宽高比 */
+}
 
 </style>

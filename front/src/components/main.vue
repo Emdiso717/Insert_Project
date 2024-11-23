@@ -1,7 +1,8 @@
 <script>
 import {HomeFilled, List, UserFilled} from "@element-plus/icons-vue";
 import axios from "axios";
-import wikipedia from "wikipedia"; // 引入wikipedia模块
+import wikipedia from "wikipedia";
+import {ElMessage} from "element-plus"; // 引入wikipedia模块
 
 export default {
   components: {List, UserFilled, HomeFilled},
