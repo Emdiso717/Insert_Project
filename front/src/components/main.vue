@@ -1,11 +1,13 @@
 <script>
-import {HomeFilled, List, UserFilled} from "@element-plus/icons-vue";
+import {Delete, Download, HomeFilled, List, Plus, UserFilled, ZoomIn} from "@element-plus/icons-vue";
 import axios from "axios";
 import wikipedia from "wikipedia";
+import { ElUpload } from 'element-plus';
 import {ElMessage} from "element-plus"; // 引入wikipedia模块
 
+
 export default {
-  components: {List, UserFilled, HomeFilled},
+  components: {Delete, Download, ZoomIn, Plus, List, UserFilled, HomeFilled},
   data() {
     return {
       //账号id
@@ -21,6 +23,9 @@ export default {
       },
       searchResult: "", // 原始搜索结果
       truncatedResult: "", // 截取后的搜索结果
+      image_search:false,
+      image_input:true,
+      imageBase64: null
     }
   },
   created() {
@@ -35,7 +40,6 @@ export default {
         query: currentRoute.query
       });
     },
-
     //搜索
     async Search() {
       try {
@@ -74,9 +78,33 @@ export default {
         path: '/result',
         query: {searchQuery: this.searchQuery},
       });
-    }
-  },
+    },
+    load_image(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          this.imageBase64 = event.target.result;
+        };
+        reader.readAsDataURL(file); // 读取文件并转换为Base64
+        this.image_input = false;
+      }
+    },
+    triggerFileInput() {
+      // 触发原生的文件输入
+      this.$refs.fileInput.click();
+    },
 
+    imagesearch(){
+      axios.post("/imagesearch",
+            {
+              image:this.imageBase64
+            }).then(response => {
+        let message = response.data
+        console.log(message);
+      })
+    }
+  }
 }
 </script>
 
@@ -110,17 +138,24 @@ export default {
     <el-main class="main">
       <!--   TODO     代码添加在这里-->
       <div class="search-container">
-        <el-input
-            v-model="searchQuery"
-            placeholder="输入关键词"
-            @keyup.enter.native="Search"
-            clearable>
-        </el-input>
-        <el-select v-model="searchType" class="search-select" placeholder="选择搜索方式">
-          <el-option label="精准搜索" value="exact"></el-option>
-          <el-option label="模糊搜索" value="fuzzy"></el-option>
-        </el-select>
-        <el-button @click="Search">搜索</el-button>
+        <input v-model="searchQuery" placeholder="输入关键词" @keyup.enter="Search" class = "search"/>
+        <el-button class="search_button" @click="Search"><p>搜索</p></el-button>
+        <el-button class="search_button" @click="Search"><p>搜索</p></el-button>
+        <el-button v-if="image_search" class="search_button" @click="image_search=!image_search"><p>收起</p></el-button>
+        <el-button v-if="!image_search" class="search_button" @click="image_search=!image_search"><p>图像搜索</p></el-button>
+      </div>
+      <div v-if="image_search" class="image_search">
+        <div v-if="image_input" style="padding: 40px">
+          <input type="file" @change="load_image" ref="fileInput" style="display: none;" />
+          <button class="image_load" @click="triggerFileInput"><p>选择文件</p></button>
+        </div>
+        <div v-if="imageBase64">
+            <img style="max-height:300px;max-width: 500px;width: auto;height:auto;padding: 40px" :src="imageBase64" alt="insert"/>
+        </div>
+        <div class="button-container">
+          <el-button  @click="imageBase64=null;image_input=true;"><p>删除图片</p></el-button>
+          <el-button style="margin-top: 15px" @click="imagesearch"><p>图像搜索</p></el-button>
+        </div>
       </div>
       <!-- 搜索结果展示 -->
       <el-list>
@@ -147,7 +182,8 @@ export default {
   </el-container>
 </template>
 
-<style scoped>
+
+<style  scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet');
 
 .all {
@@ -232,14 +268,52 @@ export default {
   margin-top: 20px;
 }
 
-.search-select {
-  margin-right: 10px;
-  width: 300px; /* 设置宽度 */
+p{
+  font-family: 'Montserrat', sans-serif;
+   font-weight: 800;
+  font-size: 16px;
 }
 
-.search-select {
-  margin-right: 10px;
-  width: 100px; /* 设置宽度 */
+.el-button{
+  background-color: #36714a;
+  margin-left: 1%;
+  height: 45px;
+  border-radius: 10px;
+  border: 2px solid #36714a;
+  box-shadow: 0 2px 8px rgb(29, 50, 37);
+  transition: .2s;
+  color: #f5f7f8;
+}
+.el-button:active,
+.el-button:focus,
+.el-button:hover {
+  background-color: #ffffff;
+  transition: box-shadow 0.3s ease;
+  color: #1d3225;
+  border-color: #326742;
+  box-shadow: 0 4px 16px rgb(36, 74, 49);
+  border-width: 3px;
+}
+.image_load{
+  width: 100px;
+  background-color: #36714a;
+  margin-left: 1%;
+  height: 45px;
+  border-radius: 10px;
+  border: 2px solid #36714a;
+  box-shadow: 0 2px 8px rgb(29, 50, 37);
+  transition: .2s;
+  color: #f5f7f8;
+}
+.image_load:active,
+.image_load:focus,
+.image_load:hover {
+  background-color: #ffffff;
+  transition: box-shadow 0.3s ease;
+  color: #1d3225;
+  border-color: #326742;
+  box-shadow: 0 4px 16px rgb(36, 74, 49);
+  border-width: 3px;
 }
 
 .el-card {
@@ -258,5 +332,47 @@ export default {
 .result-card:hover {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   transform: translateY(-5px);
+}
+
+.search {
+  font-family: 'Montserrat', sans-serif;
+  height: 45px;
+  font-size: 16px;
+  padding: 15px;
+  font-weight: 800;
+  width: 800px;
+  border: 3px solid #5e9f74;
+  transition: border-color 0.3s ease-in-out; /* 添加动画效果 */
+  border-radius: 8px;
+  outline: none !important;
+}
+.search:focus {
+  border-color: #326742 !important;
+}
+.search:hover {
+  border-color: #326742 !important;
+}
+
+.image_search{
+  display: flex;
+  justify-content:space-between;
+  align-items: center;
+  margin-left: 26%;
+  height: 400px;
+  width: 40%;
+  background-color: rgba(218, 216, 216, 0.25);
+  transition: transform 0.6s ease, box-shadow 0.6s ease;
+}
+.image_search:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column; /* 子元素垂直排列 */
+  align-items: center; /* 子元素在交叉轴上居中对齐 */
+  justify-content: space-around; /* 主轴上子元素分散对齐，并留有空隙 */
+  height: 100px; /* 根据需要设置容器的高度 */
+  padding-right: 50px;
 }
 </style>

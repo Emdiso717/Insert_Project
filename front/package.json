@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@volar/language-core": "^2.4.0-alpha.20",
+    "@volar/language-server": "^2.4.0-alpha.20",
     "axios": "^1.7.7",
     "element-plus": "^2.8.8",
     "install": "^0.13.0",

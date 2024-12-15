@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from .models import Insect
-
+from  .image import Baidu
 # Create your views here.
 @csrf_exempt
 def login(request):
@@ -70,3 +70,9 @@ def search_insect(request):
                 return JsonResponse(data)
         except Insect.DoesNotExist:
                 return JsonResponse({'error': 'Insect not found'}, status=404)
+
+@csrf_exempt
+def imagesearch(request):
+        data = json.loads(request.body)
+        result = Baidu(data.get('image'))
+        return JsonResponse(result)
