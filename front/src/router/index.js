@@ -2,7 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginVue from '@/components/login.vue'
 import MainVue from  '@/components/main.vue'
 import Result from "@/components/result.vue";
-import Tree from "@/components/tree.vue"
+import User from "@/components/user.vue";
+import Tree from "@/components/tree.vue";
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes:[
@@ -29,6 +30,11 @@ const router = createRouter({
             path:'/tree',
             name:'Tree',
             component : Tree,
+        },
+        {
+            path:'/user',
+            name:'User',
+            component : User,
         }
     ]
 

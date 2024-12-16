@@ -10,18 +10,21 @@ import * as XLSX from 'xlsx';
 //树状图的库
 import * as d3 from 'd3';
 
+
 export default {
   components: {List, UserFilled, HomeFilled},
   data() {
     return {
       //账号id
       account: '',
-
       /*___________________树状图用数据_______________________
       *展示纲目科属种中的某一层次的单个具体条例，及其下属所有存在的
       * 如：当前层次： 昆虫纲， 则当前展示昆虫纲以及属于昆虫纲的所有目的节点如鞘翅目，双翅目等；
       * 点击其中某个节点如鞘翅目，则鞘翅目替代树中原来的昆虫纲的位置，下属节点变为鞘翅目下属的天牛科，叶甲科等
       * 直到子节点变为昆虫种，则点击直接跳转该昆虫的详细界面
+      *
+      * 运行须先运行以下两条指令
+      * 'npm install d3' 和 'npm install xlsx'
       * */
       //当前父节点所在层次，从纲到属，从1到5表示
       level : 1,
@@ -50,6 +53,7 @@ export default {
   created() {
     this.account = this.$route.query.account;
     wikipedia.setLang("zh");
+
     //this.readExcelData();
   },
   mounted: async function() {
@@ -153,7 +157,7 @@ export default {
         this.level = 1;
         const seen = new Set();
           this.childrenNode = this.excelData
-            .filter(data => data.纲中文名 === '昆虫纲' && data.目中文名)
+            .filter(data => data.纲中文名 === '昆虫纲' && data.目拉丁名)
             .map(data => ({
               name: data.目中文名,
               latinName: data.目拉丁名
@@ -202,7 +206,7 @@ export default {
             }
             const seen0 = new Set();
             this.childrenNode = this.excelData
-              .filter(data => data.纲中文名 === this.parentNode.name && data.目中文名)
+              .filter(data => data.纲拉丁名 === this.parentNode.latinName && data.目拉丁名)
               .map(data => ({
                 name: data.目中文名,
                 latinName: data.目拉丁名
@@ -219,7 +223,7 @@ export default {
           case 2:
             const seen1 = new Set();
             this.childrenNode = this.excelData
-              .filter(data => data.目中文名 === this.parentNode.name && data.科中文名)
+              .filter(data => data.目拉丁名 === this.parentNode.latinName && data.科拉丁名)
               .map(data => ({
                 name: data.科中文名,
                 latinName: data.科拉丁名
@@ -236,7 +240,7 @@ export default {
           case 3:
             const seen2 = new Set();
             this.childrenNode = this.excelData
-              .filter(data => data.科中文名 === this.parentNode.name && data.属中文名)
+              .filter(data => data.科拉丁名 === this.parentNode.latinName && data.属拉丁名)
               .map(data => ({
                 name: data.属中文名,
                 latinName: data.属拉丁名
@@ -253,7 +257,7 @@ export default {
           case 4:
             const seen3 = new Set();
             this.childrenNode = this.excelData
-              .filter(data => data.属中文名 === this.parentNode.name && data.物种中文名)
+              .filter(data => data.属拉丁名 === this.parentNode.latinName && data.物种拉丁名)
               .map(data => ({
                 name: data.物种中文名,
                 latinName: data.物种拉丁名

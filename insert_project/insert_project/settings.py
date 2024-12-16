@@ -84,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'insertdb',
         'USER' : 'root',
-        'PASSWORD' :'fzy040314',
+        'PASSWORD' :'123717',
         'HOST' : '127.0.0.1',
     }
 }
