@@ -53,8 +53,6 @@ export default {
   created() {
     this.account = this.$route.query.account;
     wikipedia.setLang("zh");
-
-    //this.readExcelData();
   },
   mounted: async function() {
     await this.readExcelData(); // 确保数据加载完成
@@ -72,7 +70,11 @@ export default {
     createTree() {
       d3.select("#tree").select("svg").remove();
       const width = 1500;
-      const height = 1000;
+      let heightCount = this.treeData.children.length * 30;
+      if(heightCount < 800){
+        heightCount = 800;
+      }
+      const height = heightCount;
 
       const svg = d3.select("#tree")
         .append("svg")
@@ -81,13 +83,22 @@ export default {
 
       const g = svg.append("g")
         .attr("transform", "translate(40,0)");
-
+/*
       const tree = d3.tree()
-        .size([height - 80, width - 360]);
+        .size([height - 80, width - 360])
+        .separation((a, b) => {
+          // 使得同一层级的节点间隔相等
+          return 1;
+         });
 
       const root = d3.hierarchy(this.treeData);
 
       tree(root);
+*/
+      const cluster = d3.cluster()
+        .size([height - 80, width - 200]);
+      const root = d3.hierarchy(this.treeData);
+      cluster(root);
 
       // Links (edges)
       g.selectAll(".link")
@@ -111,7 +122,8 @@ export default {
       node.append("circle")
         .attr("r", 10)
         .style("fill", "#fff")
-        .style("stroke", "steelblue");
+        .style("stroke", "steelblue")
+        ;
 
       node.append("text")
         .attr("dy", ".31em")
@@ -127,7 +139,9 @@ export default {
           }
           return d.children ? "end" : "start";
         })
-        .text(d => `${d.data.name} (${d.data.latinName})`);
+        .html(d => {
+          return `<tspan style=" font-size: 10px;font-weight: 900;font-style: italic;">${d.data.name} <tspan style=" font-size: 10px;font-weight: 900;font-style: italic;">(${d.data.latinName})</tspan>`;
+        });
 
     },
 
@@ -179,7 +193,7 @@ export default {
     goToNode(pNode) {
       console.log('Checked node:' , pNode);
       let isDown;
-      if(pNode.name === this.parentNode.name){
+      if(pNode.latinName === this.parentNode.latinName){
         isDown = 0;
       }else{
         isDown = 1;
@@ -208,13 +222,13 @@ export default {
             this.childrenNode = this.excelData
               .filter(data => data.纲拉丁名 === this.parentNode.latinName && data.目拉丁名)
               .map(data => ({
-                name: data.目中文名,
+                name: data.目中文名 || '(未命名)',
                 latinName: data.目拉丁名
               }))
               .filter(item => {
-                const isDuplicate = seen0.has(item.name);
+                const isDuplicate = seen0.has(item.latinName);
                 if (!isDuplicate) {
-                  seen0.add(item.name);
+                  seen0.add(item.latinName);
                   return true;
                 }
                 return false;
@@ -225,13 +239,13 @@ export default {
             this.childrenNode = this.excelData
               .filter(data => data.目拉丁名 === this.parentNode.latinName && data.科拉丁名)
               .map(data => ({
-                name: data.科中文名,
+                name: data.科中文名 || '(未命名)',
                 latinName: data.科拉丁名
               }))
               .filter(item => {
-                const isDuplicate = seen1.has(item.name);
+                const isDuplicate = seen1.has(item.latinName);
                 if (!isDuplicate) {
-                  seen1.add(item.name);
+                  seen1.add(item.latinName);
                   return true;
                 }
                 return false;
@@ -242,13 +256,13 @@ export default {
             this.childrenNode = this.excelData
               .filter(data => data.科拉丁名 === this.parentNode.latinName && data.属拉丁名)
               .map(data => ({
-                name: data.属中文名,
+                name: data.属中文名 || '(未命名)',
                 latinName: data.属拉丁名
               }))
               .filter(item => {
-                const isDuplicate = seen2.has(item.name);
+                const isDuplicate = seen2.has(item.latinName);
                 if (!isDuplicate) {
-                  seen2.add(item.name);
+                  seen2.add(item.latinName);
                   return true;
                 }
                 return false;
@@ -259,23 +273,29 @@ export default {
             this.childrenNode = this.excelData
               .filter(data => data.属拉丁名 === this.parentNode.latinName && data.物种拉丁名)
               .map(data => ({
-                name: data.物种中文名,
+                name: data.物种中文名 || '(未命名)',
                 latinName: data.物种拉丁名
               }))
               .filter(item => {
-                const isDuplicate = seen3.has(item.name);
+                const isDuplicate = seen3.has(item.latinName);
                 if (!isDuplicate) {
-                  seen3.add(item.name);
+                  seen3.add(item.latinName);
                   return true;
                 }
                 return false;
               });
             break;
           case 5:
-            this.$router.push({
-              path: '/result',
-              query: {searchQuery: pNode.name},
-            })
+            if(pNode.name === '(未命名)'){
+              console.warn('无对应条目');
+              this.level--;
+              this.parentNode = this.upperNodeStack.pop();
+            }else{
+              this.$router.push({
+                path: '/result',
+                query: {searchQuery: pNode.name},
+              })
+            }
             break;
       }
       this.setTreeData();
@@ -316,10 +336,6 @@ export default {
     <el-main class="main">
       <!--   TODO     代码添加在这里-->
       <div id="tree"></div>
-      <div v-if="parentNode.name">
-        <h3>选中节点: {{ parentNode.name }}</h3>
-        <p>拉丁名: {{ parentNode.latinName }}</p>
-      </div>
     </el-main>
   </el-container>
 </template>
