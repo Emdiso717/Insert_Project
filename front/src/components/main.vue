@@ -31,8 +31,10 @@ export default {
         I: "I",
         A: "A",
       },
+      searchQuery_show: '',
       searchResult: "", // 原始搜索结果
       truncatedResult: "", // 截取后的搜索结果
+      relativeResultArray: [],//对于搜索结果的相关昆虫结果
       image_search:false,
       image_input:true,
       imageBase64: null,
@@ -59,12 +61,40 @@ export default {
           this.truncatedResult = "";
           return;
         }
-
+        this.searchQuery_show=this.searchQuery;
+        this.relativeResultArray = [];
         // 调用 API 并获取数据
-        const response = await wikipedia.page(this.searchQuery);
+        const response = await wikipedia.page(this.searchQuery_show);
         const summary = await response.summary();
         this.searchResult = summary.extract; // 原始结果
         this.truncatedResult = this.getFirstLines(summary.extract, 3); // 截取前三行
+
+        //调用后端api获得相关搜索结果
+        const response1 = await axios.get('/search_relative_insect', {
+          params: { name: this.searchQuery_show }
+        })
+        const relativeInsect = response1.data.data;
+        console.log(relativeInsect)
+        for (let i = 0; i < relativeInsect.length; i++) {
+          // console.log(relativeInsect[i])
+          // console.log(this.searchQuery)
+          try{
+            let response2 = await wikipedia.page(relativeInsect[i]);
+            let summary2 = await response2.summary();
+            this.relativeResultArray.push({
+              name: relativeInsect[i], // 设置name属性
+              res: this.getFirstLines(summary2.extract, 3) // 截取前三行 设置res属性
+            });
+          }catch(error){
+
+          }
+          // let response2 = await wikipedia.page(relativeInsect[i]);
+          // let summary2 = await response2.summary();
+          // this.relativeResultArray.push({
+          //   name: relativeInsect[i], // 设置name属性
+          //   res: this.getFirstLines(summary2.extract, 3) // 截取前三行 设置res属性
+          // });
+        }
       } catch (error) {
         if (error.name === "PageError") {
           this.searchResult = "未找到相关内容，请尝试其他关键词。";
@@ -73,7 +103,9 @@ export default {
         } else {
           this.searchResult = `搜索失败：${error.message}`;
         }
+        console.log(error)
         this.truncatedResult = ""; // 确保失败时不显示内容
+        this.relativeResultArray = [];
       }
     },
     //截取前三行
@@ -83,11 +115,11 @@ export default {
           .slice(0, numLines) // 截取前 numLines 行
           .join("\n"); // 再拼接回字符串
     },
-    goToDetailPage(item) {
+    goToDetailPage(Query) {
       // 跳转到详情页面
       this.$router.push({
         path: '/result',
-        query: {searchQuery: this.searchQuery},
+        query: {searchQuery: Query},
       });
     },
     load_image(e) {
@@ -180,7 +212,7 @@ export default {
       <!-- 搜索结果展示 -->
       <el-list>
         <template v-if="searchResult">
-          <el-card class="result-card" @click="goToDetailPage(searchResult)">
+          <el-card class="result-card" @click="goToDetailPage(searchQuery_show)">
             <div style="display: flex; align-items: center;">
               <div style="flex: 1;">
                 <p>
@@ -189,13 +221,31 @@ export default {
                       style="text-decoration: underline; color: blue;"
                       @click="goToDetailPage(searchResult)"
                   >
-                    {{ searchQuery }}
+                    {{ searchQuery_show }}
                   </a>
                 </p>
                 <p style="color: #000000;">{{ truncatedResult }}</p>
               </div>
             </div>
           </el-card>
+          <div v-for="(item, index) in relativeResultArray" :key="index">
+            <el-card class="result-card" @click="goToDetailPage(item.name)">
+              <div style="display: flex; align-items: center;">
+                <div style="flex: 1;">
+                  <p>
+                    <a
+                        href="javascript:void(0);"
+                        style="text-decoration: underline; color: blue;"
+                        @click="goToDetailPage(item.name)"
+                    >
+                      {{ item.name }}
+                    </a>
+                  </p>
+                  <p style="color: #000000;">{{ item.res }}</p>
+                </div>
+              </div>
+            </el-card>
+          </div>
         </template>
       </el-list>
     </el-main>

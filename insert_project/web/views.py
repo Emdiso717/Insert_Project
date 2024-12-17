@@ -8,6 +8,9 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from .models import Insect
 from  .image import Baidu
+import requests
+from sparkai.llm.llm import ChatSparkLLM, ChunkPrintHandler
+from sparkai.core.messages import ChatMessage
 # Create your views here.
 @csrf_exempt
 def login(request):
@@ -75,3 +78,101 @@ def imagesearch(request):
         data = json.loads(request.body)
         result = Baidu(data.get('image'))
         return JsonResponse(result)
+
+@csrf_exempt
+def search_detail(request):
+
+        name = request.GET.get('name')
+        dbaseName = request.GET.get('dbaseName')
+        apiKey = request.GET.get('apiKey')
+
+        if not name or not dbaseName or not apiKey:
+                return JsonResponse({"error": "缺少必要参数"}, status=400)
+
+        # 构造目标 API 的 URL 和请求数据
+        api_url = "http://zoology.especies.cn/api/v1/descriptionType"
+        payload = {
+                "scientificName": name,
+                "dbaseName": dbaseName,
+                "apiKey": apiKey
+        }
+        print(payload)
+        try:
+                # 向目标 API 发起 POST 请求
+                response = requests.post(api_url, data=payload)
+
+                # 检查目标 API 的响应状态
+                if response.status_code == 200:
+                        print(response.json())
+                        if(response.json().get('message')=='没有此物种'):
+                                return JsonResponse({"error": "没有此物种"}, status=500)
+                        # 用于存储所有的DescriptionInfo
+                        all_description_info = []
+                        des_type_data = response.json().get('data', {}).get('desType', [])
+                        for item in des_type_data:
+                                for key, value in item.items():
+                                        print(key, value)
+                                        api_url = "http://zoology.especies.cn/api/v1/description"
+                                        payload = {
+                                                "scientificName": name,
+                                                "dbaseName": dbaseName,
+                                                "descriptionType": key,
+                                                "apiKey": apiKey
+                                        }
+                                        response = requests.post(api_url, data=payload)
+                                        if response.status_code == 200:
+                                                data = response.json()
+                                                print(data)
+                                                # 获取 DescriptionInfo 数据
+                                                description_info = data.get("data", {}).get("DescriptionInfo", [])
+
+                                                # 如果DescriptionInfo非空，获取第一项
+                                                if description_info:
+                                                        all_description_info.append({
+                                                                "descriptionType": value,  # 描述类型的名称
+                                                                "descriptionInfo": description_info[0]  # 只获取第一项
+                                                        })
+                        for desc in all_description_info:
+                                print(f"描述类型: {desc['descriptionType']}")
+                                print(f"标题: {desc['descriptionInfo']['destitle']}")
+                                print(f"内容: {desc['descriptionInfo']['descontent']}")
+                                print(f"引用: {', '.join(desc['descriptionInfo']['refs'])}")
+                                print("-" * 50)
+
+                        return JsonResponse({"data": all_description_info}, status=200)  # 成功时直接返回 API 数据
+                else:
+                        print(response.text)
+                        return JsonResponse({
+                                "error": "目标 API 请求失败",
+                                "status_code": response.status_code,
+                                "response": response.text
+                        }, status=response.status_code)
+        except requests.exceptions.RequestException as e:
+                # 捕获请求异常
+                return JsonResponse({"error": "请求处理失败", "message": str(e)}, status=500)
+
+@csrf_exempt
+def search_relative_insect(request):
+        name = request.GET.get('name')
+        appid = "4c47a46e"  # 填写控制台中获取的 APPID 信息
+        api_secret = "MWU5ZmZjNWE2NzU2NTI4YmY1YzMyYjUw"  # 填写控制台中获取的 APISecret 信息
+        api_key = "222160bb4f1116c85b582c58ed881ed8"  # 填写控制台中获取的 APIKey 信息
+        spark = ChatSparkLLM(
+                spark_api_url="wss://spark-api.xf-yun.com/v3.5/chat",
+                spark_app_id=appid,
+                spark_api_key=api_key,
+                spark_api_secret=api_secret,
+                spark_llm_domain="generalv3.5",
+                streaming=False,
+        )
+        messages = [ChatMessage(
+                role="user",
+                content='给我输出关于这个昆虫'+name+'类别相近的有关联的十个昆虫的中文名称'+
+                        '精简你的输出，输出格式为"昆虫名1-昆虫名2-昆虫名3"'
+                        # '精简你的输出，输出格式为"昆虫名1-昆虫名2-昆虫名3-昆虫名4-昆虫名5"'
+        )]
+        a = spark.generate([messages])
+        string = a.generations[0][0].text
+        names = string.split("-")
+        print(names)
+        return JsonResponse({"data": names}, status=200)  # 成功时直接返回 API 数据
