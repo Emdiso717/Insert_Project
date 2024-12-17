@@ -20,7 +20,6 @@ def login(request):
         else:
                 return HttpResponse("用户名或密码错误")
 
-
 @csrf_exempt
 def register(request):
         data = json.loads(request.body)

@@ -1,5 +1,15 @@
-<script>
-import {Delete, Download, HomeFilled, List, Plus, UserFilled, ZoomIn} from "@element-plus/icons-vue";
+<script xmlns="http://www.w3.org/1999/html">
+import {
+  Delete,
+  Download,
+  HomeFilled,
+  List,
+  Plus,
+  Upload,
+  UploadFilled,
+  UserFilled,
+  ZoomIn
+} from "@element-plus/icons-vue";
 import axios from "axios";
 import wikipedia from "wikipedia";
 import { ElUpload } from 'element-plus';
@@ -7,7 +17,7 @@ import {ElMessage} from "element-plus"; // 引入wikipedia模块
 
 
 export default {
-  components: {Delete, Download, ZoomIn, Plus, List, UserFilled, HomeFilled},
+  components: {UploadFilled, Upload, Delete, Download, ZoomIn, Plus, List, UserFilled, HomeFilled},
   data() {
     return {
       //账号id
@@ -25,7 +35,8 @@ export default {
       truncatedResult: "", // 截取后的搜索结果
       image_search:false,
       image_input:true,
-      imageBase64: null
+      imageBase64: null,
+      image_result:[]
     }
   },
   created() {
@@ -94,14 +105,12 @@ export default {
       // 触发原生的文件输入
       this.$refs.fileInput.click();
     },
-
     imagesearch(){
       axios.post("/imagesearch",
             {
               image:this.imageBase64
             }).then(response => {
-        let message = response.data
-        console.log(message);
+        this.image_result = response.data.result
       })
     }
   }
@@ -139,24 +148,35 @@ export default {
       <!--   TODO     代码添加在这里-->
       <div class="search-container">
         <input v-model="searchQuery" placeholder="输入关键词" @keyup.enter="Search" class = "search"/>
-        <el-button class="search_button" @click="Search"><p>搜索</p></el-button>
+        <el-button class="search_button" @click="Search" style="margin-left: 1%"><p>搜索</p></el-button>
         <el-button class="search_button" @click="Search"><p>搜索</p></el-button>
         <el-button v-if="image_search" class="search_button" @click="image_search=!image_search"><p>收起</p></el-button>
         <el-button v-if="!image_search" class="search_button" @click="image_search=!image_search"><p>图像搜索</p></el-button>
       </div>
-      <div v-if="image_search" class="image_search">
-        <div v-if="image_input" style="padding: 40px">
-          <input type="file" @change="load_image" ref="fileInput" style="display: none;" />
-          <button class="image_load" @click="triggerFileInput"><p>选择文件</p></button>
+      <el-row v-if="image_search" style="height: 80%;width: 90%;margin-left: 10%;margin-top: 4%">
+        <div class="image_search">
+          <div v-if="image_input" class="image_upload" @click="triggerFileInput">
+            <input type="file" @change="load_image" ref="fileInput" style="display: none;" />
+            <el-icon style="font-size: 40px"><UploadFilled /></el-icon>
+            <p>上传图片</p>
+          </div>
+          <div v-if="imageBase64" class="image_upload ">
+            <img class="image_upload1" :src="imageBase64" alt="insert"/>
+          </div>
+          <div class="button-container">
+            <el-button  style="margin-left: 10px" @click="imageBase64=null;image_input=true;"><p>删除图片</p></el-button>
+            <el-button style="margin-top: 15px" @click="imagesearch"><p>图像搜索</p></el-button>
+          </div>
         </div>
-        <div v-if="imageBase64">
-            <img style="max-height:300px;max-width: 500px;width: auto;height:auto;padding: 40px" :src="imageBase64" alt="insert"/>
+        <div class="image_result">
+          <div style="text-align: center;color: #3f6a53;"><p style="font-size: 20px">Search Results</p></div>
+          <div v-for="re in image_result" class="image_result_version">
+            <p>{{re.name}}  :  {{re.score}}</p>
+            <el-progress  :stroke-width="10" :percentage="parseFloat(re.score)*100" color="#3f6a53" :show-text="false"/>
+          </div>
         </div>
-        <div class="button-container">
-          <el-button  @click="imageBase64=null;image_input=true;"><p>删除图片</p></el-button>
-          <el-button style="margin-top: 15px" @click="imagesearch"><p>图像搜索</p></el-button>
-        </div>
-      </div>
+
+      </el-row>
       <!-- 搜索结果展示 -->
       <el-list>
         <template v-if="searchResult">
@@ -270,13 +290,12 @@ export default {
 
 p{
   font-family: 'Montserrat', sans-serif;
-   font-weight: 800;
+  font-weight: 800;
   font-size: 16px;
 }
 
 .el-button{
   background-color: #36714a;
-  margin-left: 1%;
   height: 45px;
   border-radius: 10px;
   border: 2px solid #36714a;
@@ -357,13 +376,25 @@ p{
   display: flex;
   justify-content:space-between;
   align-items: center;
-  margin-left: 26%;
-  height: 400px;
-  width: 40%;
+  margin-left: 3%;
+  height: 80%;
+  width: 60%;
   background-color: rgba(218, 216, 216, 0.25);
   transition: transform 0.6s ease, box-shadow 0.6s ease;
 }
 .image_search:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.image_result{
+  display: grid;
+  place-items: center;
+  margin-left: 3%;
+  height: 80%;
+  width: 20%;
+  background-color: rgba(218, 216, 216, 0.25);
+  transition: transform 0.6s ease, box-shadow 0.6s ease;
+}
+.image_result:hover {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
@@ -374,5 +405,36 @@ p{
   justify-content: space-around; /* 主轴上子元素分散对齐，并留有空隙 */
   height: 100px; /* 根据需要设置容器的高度 */
   padding-right: 50px;
+}
+
+.image_upload{
+    height: 400px; /* 可以根据需要调整高度 */
+    width: 800px;
+    border: 2px dashed #5e9f74; /* 虚线框 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px;
+    position: relative;
+    overflow: hidden;
+    background: #e7f3ec;
+    transition: transform 0.6s ease, box-shadow 0.6s ease,background-color 0.6s ease;;
+}
+.image_upload:hover {
+  background: #cdd8d1;
+  box-shadow: 0 4px 10px rgb(66, 149, 97);
+}
+.image_upload1{
+    max-height: 400px; /* 可以根据需要调整高度 */
+    max-width: 800px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+}
+.image_result_version{
+  margin-top:-3px;
+  width: 90%;
 }
 </style>
