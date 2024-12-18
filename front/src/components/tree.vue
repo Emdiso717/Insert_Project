@@ -69,8 +69,8 @@ export default {
     },
     createTree() {
       d3.select("#tree").select("svg").remove();
-      const width = 1500;
-      let heightCount = this.treeData.children.length * 30;
+      const width = 1400;
+      let heightCount = this.treeData.children.length * 45;
       if(heightCount < 800){
         heightCount = 800;
       }
@@ -78,7 +78,7 @@ export default {
 
       const svg = d3.select("#tree")
         .append("svg")
-        .attr("width", width)
+        .attr("width", width + 600)
         .attr("height", height);
 
       const g = svg.append("g")
@@ -109,7 +109,7 @@ export default {
           .x(d => d.y)
           .y(d => d.x))
         .style("fill", "none")
-        .style("stroke", "#ccc");
+        .style("stroke", "#2E8B57");
 
       // Nodes
       const node = g.selectAll(".node")
@@ -117,21 +117,64 @@ export default {
         .enter().append("g")
         .attr("class", "node")
         .attr("transform", d => `translate(${d.y},${d.x})`)
-        .on("click", (event, d) => this.goToNode(d.data));
+        .on("click" , (event , d) => {
+          this.goToNode(d.data);
+        })
+        .on("mouseover", function(event, d) {
+          // 放大圆形节点
+          d3.select(this).select("circle")
+            .transition()
+            .duration(200)
+            .attr("r", 25) // 增大圆形半径
+            .style("cursor", "pointer");
+
+          // 放大文本并向右移动
+          d3.select(this).selectAll("text")
+            .transition()
+            .duration(200)
+            //.style("font-size", "14px")
+            .attr("x", d => d.depth === 0 ? 35 : d.children ? -35 : 35); // 右移文字
+
+        })
+        // 鼠标移开时恢复默认状态
+        .on("mouseout", function(event, d) {
+          // 恢复圆形节点大小
+          d3.select(this).select("circle")
+            .transition()
+            .duration(200)
+            .attr("r", 15) // 恢复圆形半径
+            .style("cursor", "default");
+
+          // 恢复文本大小和位置
+          d3.select(this).selectAll("text")
+            .transition()
+            .duration(200)
+            .style("font-size", "10px")
+            .attr("x", d => d.depth === 0 ? 25 : d.children ? -25 : 25); // 恢复文本位置
+
+          // 恢复连线的颜色和宽度
+        });
+
 
       node.append("circle")
-        .attr("r", 10)
+        .attr("r", 15)
         .style("fill", "#fff")
         .style("stroke", "steelblue")
-        ;
+          .attr("dx" , d => {
+            if(d.depth ===0 ){
+              return 100;
+            }else{
+              return 0;
+            }
+          });
 
-      node.append("text")
+      const text1 = node.append("text")
         .attr("dy", ".31em")
         .attr("x", d => {
           if (d.depth === 0) {
-            return 12; // 根节点的文本向右移一个半径距离
+            return 25; // 根节点的文本向右移一个半径距离
           }
-          return d.children ? -12 : 12;
+          return d.children ? -25 : 25;
         })
         .style("text-anchor", d => {
           if (d.depth === 0) {
@@ -140,9 +183,37 @@ export default {
           return d.children ? "end" : "start";
         })
         .html(d => {
-          return `<tspan style=" font-size: 10px;font-weight: 900;font-style: italic;">${d.data.name} <tspan style=" font-size: 10px;font-weight: 900;font-style: italic;">(${d.data.latinName})</tspan>`;
+          if (d.data.name === '(未命名)') {
+            // 如果名字是 '(未命名)'，显示拉丁名
+            return `<tspan style=" font-size: 20px;">${d.data.latinName}</tspan>`;
+          }
+          // 否则显示普通的名字
+          return `<tspan style=" font-size: 20px;">${d.data.name}</tspan>`;
         });
 
+      const text2 = node.append("text")
+        .attr("dy", ".200em")
+        .attr("x", d => {
+          if (d.depth === 0) {
+            return 25; // 根节点的文本向右移一个半径距离
+          }
+          return d.children ? -25 : 25;
+        })
+        .attr("y" , d => {
+          if (d.depth === 0) {
+            return 15; // 根节点的文本向右移一个半径距离
+          }
+          return d.children ? -15 : 15;
+        })
+        .style("text-anchor", d => {
+          if (d.depth === 0) {
+            return "start"; // 根节点文本在右侧
+          }
+          return d.children ? "end" : "start";
+        })
+        .html(d => {
+          return `<tspan style=" font-size: 13px;font-weight: 900;font-style: italic;">${d.data.latinName}</tspan>`;
+        })
     },
 
     async setTreeData(){
@@ -293,7 +364,10 @@ export default {
             }else{
               this.$router.push({
                 path: '/result',
-                query: {searchQuery: pNode.name},
+                query: {
+                  searchQuery: pNode.name,
+                  account:this.account
+                },
               })
             }
             break;
@@ -403,6 +477,10 @@ export default {
   left: 7vw;
   width: 93%;
   height: 92%;
+  background-image: url("./icons/stacked-waves-haikei.svg");
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: cover;
 }
 
 .main > div {

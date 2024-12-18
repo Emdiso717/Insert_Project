@@ -37,7 +37,10 @@ export default {
       const currentRoute = this.$route;
       this.$router.push({
         path: path,
-        query: currentRoute.query
+        query: {
+          searchQuery:currentRoute.query,
+          account:this.account
+        }
       });
     },
     //搜索
