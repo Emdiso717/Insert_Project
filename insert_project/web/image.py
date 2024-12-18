@@ -8,8 +8,7 @@ SECRET_KEY = "iAgsxdNtl3CkvS9hXLMIznhK4KYQXDLD"
 def Baidu(image):
     url = "https://aip.baidubce.com/rest/2.0/image-classify/v1/animal?access_token=" + get_access_token()
     image = quote_plus(image)
-    payload = 'image='+image
-    print(payload)
+    payload = 'image=' + image + '&baike_num=2'
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
         "Accept": "application/json",

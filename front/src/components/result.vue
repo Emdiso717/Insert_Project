@@ -14,6 +14,28 @@ export default {
       searchQuery: '',
       //搜索的类型，比如学名搜索，描述搜索等,S代表标准（学名搜索），I代表图片搜索，A代表AI搜索
       insectData: null, // 用来存储后端返回的数据
+      // insectData=[
+      //   {
+      //     "descriptionInfo": {
+      //       "refs": [
+      //         "吴燕如, 2000. 中国动物志 昆虫纲 第二十卷 膜翅目 准蜂科 蜜蜂科. 北京: 科学出版社. 442 页，218 图，9 图版"
+      //       ],
+      //       "descontent": "鉴别特征： 意大利蜂与中华蜜蜂的工蜂形态上的主要区别为：1．唇基黑色，不具黄或黄褐色斑；2．体较大，为12—14mm；体色变化大，深灰褐色至黄或黄褐色；3．后翅中脉不分叉(图208：b)。",
+      //       "destitle": "Apis mellifera的形态描述"
+      //     },
+      //     "descriptionType": "形态描述"
+      //   },
+      //   {
+      //     "descriptionInfo": {
+      //       "refs": [
+      //         "吴燕如, 2000. 中国动物志 昆虫纲 第二十卷 膜翅目 准蜂科 蜜蜂科. 北京: 科学出版社. 442 页，218 图，9 图版"
+      //       ],
+      //       "descontent": "体较大，为12—14mm；",
+      //       "destitle": "Apis mellifera的大小"
+      //     },
+      //     "descriptionType": "大小"
+      //   }
+      // ]
       error: null, // 用来存储错误信息
     }
   },
@@ -24,13 +46,19 @@ export default {
   methods: {
     async fetchFullContent() {
       try {
-        const response = await axios.get("/search_insect", {
-            params: {
-              name: this.searchQuery
-            }
+        // const response = await axios.get(url, { params });
+        const response = await axios.get('/search_detail', {
+          params: {
+            // name: 'Culex pipiens',
+            name: this.searchQuery,
+            dbaseName: '中国动物志数据库',
+            // dbaseName: '云南蝴蝶分布数据库',
+            apiKey: '4541b8322a174f75b368cc269ea2d8fd'
+          }
         })
-        this.insectData = response.data; // 存储后端返回的数据
-        console.log(this.insectData.image_url);
+        this.insectData = response.data.data; // 存储后端返回的数据
+        // console.log(this.insectData);
+        // console.log(this.insectData[0]);
       }catch (error) {
         if (error.response) {
           // 后端返回了错误信息
@@ -75,53 +103,32 @@ export default {
     </el-aside>
     <el-main class="main">
       <!--   TODO     代码添加在这里-->
-<!--      <el-descriptions v-if="insectData" class="margin-top" title="this信息" :column="1">-->
-<!--        <el-descriptions-item label="中文名：">{{ insectData.chinese_name }}</el-descriptions-item>-->
-<!--        <el-descriptions-item label="拉丁名：">{{ insectData.latin_name }}</el-descriptions-item>-->
-<!--        <el-descriptions-item label="俗名：">{{ insectData.common_name }}</el-descriptions-item>-->
-<!--        <el-descriptions-item label="别名：">{{ insectData.aliases }}</el-descriptions-item>-->
-<!--        <el-descriptions-item label="外观：">{{ insectData.appearance }}</el-descriptions-item>-->
-<!--        <el-descriptions-item label="习性：">{{ insectData.habits }}</el-descriptions-item>-->
-<!--        <el-descriptions-item label="近亲：">{{ insectData.relatives }}</el-descriptions-item>-->
-<!--        <el-descriptions-item label="分布：">{{ insectData.distribution }}</el-descriptions-item>-->
-<!--      </el-descriptions>-->
-<!--      <el-row class="image-row">-->
-<!--        <el-col :span="12">-->
-<!--          <el-image v-if="insectData.image_url" :src="insectData.image_url" fit="contain" class="insect-image"/>-->
-<!--        </el-col>-->
-<!--      </el-row>-->
-      <el-row class="margin-top">
-        <!-- 左侧部分：信息显示 -->
-        <el-col :span="16">
-          <el-descriptions v-if="insectData" class="margin-top" title="详情" :column="1">
-            <el-descriptions-item label="中文名：">{{ insectData.chinese_name }}</el-descriptions-item>
-            <el-descriptions-item label="拉丁名：">{{ insectData.latin_name }}</el-descriptions-item>
-            <el-descriptions-item label="俗名：">{{ insectData.common_name }}</el-descriptions-item>
-            <el-descriptions-item label="别名：">{{ insectData.aliases }}</el-descriptions-item>
-            <el-descriptions-item label="外观：">{{ insectData.appearance }}</el-descriptions-item>
-            <el-descriptions-item label="习性：">{{ insectData.habits }}</el-descriptions-item>
-            <el-descriptions-item label="近亲：">{{ insectData.relatives }}</el-descriptions-item>
-            <el-descriptions-item label="分布：">{{ insectData.distribution }}</el-descriptions-item>
-
-            <el-descriptions-item label="分类 (Taxonomy)">
-              <div v-if="insectData.taxonomy">
-                <div v-for="(value, key) in insectData.taxonomy" :key="key" >
-                  <div :style="{ marginLeft: '20px' }"><strong>{{ key }}:</strong> {{ value }}</div>
-                </div>
-              </div>
-            </el-descriptions-item>
-          </el-descriptions>
-        </el-col>
-
-        <!-- 右侧部分：图片显示 -->
-        <el-col :span="5">
-          <el-row class="image-row">
-            <el-col :span="24">
-              <el-image v-if="insectData && insectData.image_url" :src="insectData.image_url" fit="contain" class="insect-image"/>
-            </el-col>
-          </el-row>
-        </el-col>
-      </el-row>
+      <el-list>
+        <template v-if="insectData">
+          <div>
+            <!-- 每行只显示一个卡片，设置 el-col 的 span 为 24 -->
+            <el-row>
+              <el-col :span="20" v-for="(item, index) in insectData" :key="index">
+                <el-card class="card" shadow="hover">
+                  <!-- 卡片顶部显示 descriptionType -->
+                  <div class="card-header">
+                    <h3>{{ item.descriptionType }}</h3>
+                  </div>
+                  <!-- 卡片主体显示 descontent -->
+                  <div class="card-body">
+                    <!--                    <p>{{ item.descriptionInfo.descontent }}</p>-->
+                    <p v-html="item.descriptionInfo.descontent"></p>
+                  </div>
+                  <!-- 卡片底部显示 refs（斜体样式） -->
+                  <div class="card-footer">
+                    <p class="italic">{{ item.descriptionInfo.refs.join(', ') }}</p>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </div>
+        </template>
+      </el-list>
 
     </el-main>
   </el-container>
@@ -191,6 +198,37 @@ export default {
   width: 93%;
   height: 92%;
 }
+
+.card {
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #e0fffa;
+}
+
+.card-header h3 {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.2em;
+  letter-spacing: 1px;
+  color: #006400;
+  margin-bottom: 10px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.card-body {
+  margin-bottom: 10px;
+}
+
+.card-footer {
+  font-size: 0.9em;
+  text-align: right;
+}
+
+.italic {
+  font-style: italic;
+  color: #555;
+}
+
 
 .image-row {
   display: flex;
