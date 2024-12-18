@@ -50,10 +50,7 @@ export default {
       const currentRoute = this.$route;
       this.$router.push({
         path: path,
-        query: {
-          searchQuery:currentRoute.query,
-          account:this.account
-        }
+        query: currentRoute.query
       });
     },
     //搜索
@@ -122,7 +119,10 @@ export default {
       // 跳转到详情页面
       this.$router.push({
         path: '/result',
-        query: {searchQuery: Query},
+        query: {
+          searchQuery: Query,
+          account:this.account
+        },
       });
     },
     load_image(e) {
