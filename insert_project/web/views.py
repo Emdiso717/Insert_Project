@@ -82,7 +82,7 @@ def imagesearch(request):
         data = json.loads(request.body)
         result = Baidu(data.get('image'))
         insect_name = result['result'][0]['name']
-        if Image.objects.filter(chinese_name= insect_name).exists() and Image.objects.filter(account=data.get('account')).exists():
+        if Image.objects.filter(chinese_name= insect_name).filter(account=data.get('account')).exists():
                 pass
         else:
                 insert= Image(chinese_name= insect_name,account=data.get('account'))

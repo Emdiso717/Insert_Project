@@ -112,7 +112,9 @@ export default {
           account: this.account,
         }).then(response => {
           this.user = response.data;
-          this.user.count = 890;
+          if(this.user.account==="Emdiso717"){
+            this.user.count = 1260;
+          }
         })
     },
     changeRoute(path) {
@@ -209,7 +211,7 @@ export default {
               <el-avatar :size="120" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
                 class="profile-avatar" />
               <div class="user-name">{{ user.account }}</div>
-              <el-tag type="success" class="user-level" effect="dark">Level 6</el-tag>
+              <el-tag type="success" class="user-level" effect="dark">Level {{ Math.floor((user.count / 100)) +1}}</el-tag>
             </div>
 
             <div class="info-grid">
@@ -260,6 +262,7 @@ export default {
           </div>
         </div>
       </div>
+      <el-button @click="quit" style="margin-left: 1500px">Quit</el-button>
     </el-main>
   </el-container>
 </template>
@@ -288,7 +291,25 @@ export default {
   font-weight: 600;
   letter-spacing: 2px;
 }
-
+.el-button{
+  background-color: #36714a;
+  height: 45px;
+  border-radius: 10px;
+  border: 2px solid #36714a;
+  box-shadow: 0 2px 8px rgb(29, 50, 37);
+  transition: .2s;
+  color: #f5f7f8;
+}
+.el-button:active,
+.el-button:focus,
+.el-button:hover {
+  background-color: #ffffff;
+  transition: box-shadow 0.3s ease;
+  color: #1d3225;
+  border-color: #326742;
+  box-shadow: 0 4px 16px rgb(36, 74, 49);
+  border-width: 3px;
+}
 .down {
   position: relative;
 
