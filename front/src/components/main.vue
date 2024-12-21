@@ -326,6 +326,10 @@ export default {
   left: 7vw;
   width: 93%;
   height: 92%;
+  background-image: url("/blob-scene-haikei.svg");
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: cover;
 }
 
 .main > div {
