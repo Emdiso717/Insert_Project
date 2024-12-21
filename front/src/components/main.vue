@@ -119,7 +119,8 @@ export default {
         if (!this.searchQuery) {
           return;
         }
-
+        this.loading = true;
+        this.empty = false;
         //调用后端api获得相关搜索结果
         const response = await axios.get('/search_ai', {
           params: { message: this.searchQuery }
@@ -148,6 +149,8 @@ export default {
         }
         console.log(error)
         this.searchResult_AI = ""; // 确保失败时不显示内容
+      } finally {
+        this.loading = false;
       }
     },
     //截取前三行

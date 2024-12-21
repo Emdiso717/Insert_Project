@@ -167,8 +167,8 @@ def search_relative_insect(request):
         )
         messages = [ChatMessage(
                 role="user",
-                content='给我输出关于这个昆虫'+name+'类别相近的有关联的十个昆虫的中文名称'+
-                        '精简你的输出，输出格式为"昆虫名1-昆虫名2-昆虫名3"'
+                content='只给我输出关于这个昆虫：' + name + '类别相近的有关联的十个昆虫的中文名称,不要与我给你的昆虫重复，只要学名，不要介绍这个昆虫，只输出下面我告诉你的输出格式' +
+                        '精简你的输出，输出格式为"昆虫名-昆虫名-昆虫名"'
                         # '精简你的输出，输出格式为"昆虫名1-昆虫名2-昆虫名3-昆虫名4-昆虫名5"'
         )]
         a = spark.generate([messages])
@@ -176,7 +176,31 @@ def search_relative_insect(request):
         names = string.split("-")
         print(names)
         return JsonResponse({"data": names}, status=200)  # 成功时直接返回 API 数据
+def search_ai(request):
+        message = request.GET.get('message')
+        appid = "4c47a46e"  # 填写控制台中获取的 APPID 信息
+        api_secret = "MWU5ZmZjNWE2NzU2NTI4YmY1YzMyYjUw"  # 填写控制台中获取的 APISecret 信息
+        api_key = "222160bb4f1116c85b582c58ed881ed8"  # 填写控制台中获取的 APIKey 信息
+        spark = ChatSparkLLM(
+                spark_api_url="wss://spark-api.xf-yun.com/v3.5/chat",
+                spark_app_id=appid,
+                spark_api_key=api_key,
+                spark_api_secret=api_secret,
+                spark_llm_domain="generalv3.5",
+                streaming=False,
+        )
+        messages = [ChatMessage(
+                role="user",
+                # content="请以html的格式返回我下面的问题，我会直接把你的回答插入到<p v-html=""></p >这样一个html块在前端显示出来，"+
+                #         "我的问题如下："+message
+                content="请回答我的问题，只需要纯文本的输出："+message
 
+        )]
+        a = spark.generate([messages])
+        string = a.generations[0][0].text
+        print(string)
+
+        return JsonResponse({"data": string}, status=200)  # 成功时直接返回 API 数据
 @csrf_exempt
 def get_account(request):
     data = json.loads(request.body)
