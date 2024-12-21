@@ -38,7 +38,8 @@ export default {
       image_search:false,
       image_input:true,
       imageBase64: null,
-      image_result:[]
+      image_result:[],
+      loading : false,//搜索条目加载中？
     }
   },
   created() {
@@ -61,6 +62,7 @@ export default {
           this.truncatedResult = "";
           return;
         }
+        this.loading = true;
         this.searchQuery_show=this.searchQuery;
         this.relativeResultArray = [];
         // 调用 API 并获取数据
@@ -106,6 +108,8 @@ export default {
         console.log(error)
         this.truncatedResult = ""; // 确保失败时不显示内容
         this.relativeResultArray = [];
+      }finally {
+        this.loading = false; // 结束加载
       }
     },
     //截取前三行
@@ -213,6 +217,9 @@ export default {
 
       </el-row>
       <!-- 搜索结果展示 -->
+        <div class="loader" v-if="loading">
+          <img src="/loading.gif" alt="Loading" class="loading-image"/>
+        </div>
       <el-list>
         <template v-if="searchResult">
           <el-card class="result-card" @click="goToDetailPage(searchQuery_show)">
@@ -489,5 +496,15 @@ p{
 .image_result_version{
   margin-top:-3px;
   width: 90%;
+}
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+}
+.loading-image {
+  width: 70px; /* 设置为所需的宽度 */
+  height: 70px; /* 设置为 'auto' 可以保持图像比例 */
 }
 </style>
