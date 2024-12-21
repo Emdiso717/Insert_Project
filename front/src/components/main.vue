@@ -149,6 +149,7 @@ export default {
     imagesearch(){
       axios.post("/imagesearch",
             {
+              account:this.account,
               image:this.imageBase64
             }).then(response => {
         this.image_result = response.data.result

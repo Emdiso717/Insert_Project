@@ -44,3 +44,16 @@ class Insect(models.Model):
         return self.latin_name
 
 
+class Image(models.Model):
+    account = models.CharField(max_length=255, verbose_name="账户")
+    chinese_name = models.CharField(max_length=255, verbose_name="中文学名")
+
+
+    class Meta:
+        db_table = 'Image'
+        verbose_name = "收藏"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.account
+
