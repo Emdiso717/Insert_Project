@@ -1,5 +1,7 @@
 import requests
 import base64
+from django.http import JsonResponse
+from .models import Image
 from urllib.parse import quote_plus
 API_KEY = "G9z013xbe3MVAEv6wOl7qkF4"
 SECRET_KEY = "iAgsxdNtl3CkvS9hXLMIznhK4KYQXDLD"
@@ -16,6 +18,7 @@ def Baidu(image):
 
     response = requests.request("POST", url, headers=headers, data=payload)
     print(response.json())
+
     return response.json()
 
 

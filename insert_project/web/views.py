@@ -6,11 +6,15 @@ import json
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import condition
+
 from .models import Insect
 from  .image import Baidu
 import requests
 from sparkai.llm.llm import ChatSparkLLM, ChunkPrintHandler
 from sparkai.core.messages import ChatMessage
+from .models import Image
+from django.db.models import Q
 # Create your views here.
 @csrf_exempt
 def login(request):
@@ -77,6 +81,12 @@ def search_insect(request):
 def imagesearch(request):
         data = json.loads(request.body)
         result = Baidu(data.get('image'))
+        insect_name = result['result'][0]['name']
+        if Image.objects.filter(chinese_name= insect_name).exists() and Image.objects.filter(account=data.get('account')).exists():
+                pass
+        else:
+                insert= Image(chinese_name= insect_name,account=data.get('account'))
+                insert.save()
         return JsonResponse(result)
 
 @csrf_exempt
@@ -210,6 +220,7 @@ def get_account(request):
 
     chinese_time_str = date_joined.strftime("%Y.%m.%d %A %H:%M:%S")
 
-    information= {'account': user.username,'email':user.email,'date_joined':chinese_time_str}
+    order_count = Image.objects.filter(account=account).count()
+    information= {'account': user.username,'email':user.email,'date_joined':chinese_time_str,'count':order_count}
     print(user.date_joined)
     return JsonResponse(information, safe=False)
