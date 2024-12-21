@@ -32,15 +32,20 @@ export default {
         A: "A",
       },
       searchQuery_show: '',
+
+      loading : false,//搜索条目加载中？
+      empty : true,//若啥都没有则加载点图片
       searchResult: "", // 原始搜索结果
       truncatedResult: "", // 截取后的搜索结果
       relativeResultArray: [],//对于搜索结果的相关昆虫结果
+
+      searchResult_AI: "",//AI问答结果返回
+      formattedResult_AI: "",//AI结果对格式化
+
       image_search:false,
       image_input:true,
       imageBase64: null,
-      image_result:[],
-      loading : false,//搜索条目加载中？
-      empty : true,//若啥都没有则加载点图片
+      image_result:[]
     }
   },
   created() {
@@ -90,14 +95,9 @@ export default {
               res: this.getFirstLines(summary2.extract, 3) // 截取前三行 设置res属性
             });
           }catch(error){
-
+            console.log(error)
           }
-          // let response2 = await wikipedia.page(relativeInsect[i]);
-          // let summary2 = await response2.summary();
-          // this.relativeResultArray.push({
-          //   name: relativeInsect[i], // 设置name属性
-          //   res: this.getFirstLines(summary2.extract, 3) // 截取前三行 设置res属性
-          // });
+
         }
       } catch (error) {
         if (error.name === "PageError") {
@@ -110,8 +110,44 @@ export default {
         console.log(error)
         this.truncatedResult = ""; // 确保失败时不显示内容
         this.relativeResultArray = [];
-      }finally {
+      } finally {
         this.loading = false; // 结束加载
+      }
+    },
+    async Search_AI() {
+      try {
+        if (!this.searchQuery) {
+          return;
+        }
+
+        //调用后端api获得相关搜索结果
+        const response = await axios.get('/search_ai', {
+          params: { message: this.searchQuery }
+        })
+        this.searchResult_AI = response.data.data;
+        console.log(this.searchResult_AI);
+        //对格式进行变化
+
+        // 将文本中的数字和标题转化为 HTML 列表
+        let formattedText = this.searchResult_AI.replace(/\d+\./g, (match) => {
+          return `<li><strong>${match}</strong>`;
+        });
+
+        // 在 "1." 和每个段落后面加上</li>，避免只有开始标签没有闭合
+        formattedText = formattedText.replace(/<\/li>\s*<li>/g, '</li><li>');
+
+        // 返回最终的 HTML 格式
+        this.formattedResult_AI = `<ul>${formattedText}</ul>`;
+      } catch (error) {
+        if (error.name === "PageError") {
+          this.searchResult = "未找到相关内容，请尝试其他关键词。";
+        } else if (error.name === "DisambiguationError") {
+          this.searchResult = "关键词过于模糊，请尝试更具体的搜索内容。";
+        } else {
+          this.searchResult = `搜索失败：${error.message}`;
+        }
+        console.log(error)
+        this.searchResult_AI = ""; // 确保失败时不显示内容
       }
     },
     //截取前三行
@@ -125,10 +161,7 @@ export default {
       // 跳转到详情页面
       this.$router.push({
         path: '/result',
-        query: {
-          searchQuery: Query,
-          account:this.account
-        },
+        query: {searchQuery: Query},
       });
     },
     load_image(e) {
@@ -200,10 +233,10 @@ export default {
         </div>
       </div>
 
-      <div class="search-container">
+     <div class="search-container">
         <input v-model="searchQuery" placeholder="输入关键词" @keyup.enter="Search" class = "search"/>
         <el-button class="search_button" @click="Search" style="margin-left: 1%"><p>搜索</p></el-button>
-        <el-button class="search_button" @click="Search"><p>搜索</p></el-button>
+        <el-button class="search_button" @click="Search_AI"><p>AI问答</p></el-button>
         <el-button v-if="image_search" class="search_button" @click="image_search=!image_search"><p>收起</p></el-button>
         <el-button v-if="!image_search" class="search_button" @click="image_search=!image_search"><p>图像搜索</p></el-button>
       </div>
@@ -230,6 +263,11 @@ export default {
           </div>
         </div>
 
+      </el-row>
+      <el-row v-if="searchResult_AI">
+        <el-col :span="20"  style="height: 80%;width: 90%;margin-left: 7%;margin-top: 2%; padding: 20px; background-color: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); line-height: 1.8;background-color: #d4edda;">
+          <p v-html="formattedResult_AI" style="font-size: 16px; color: #333; word-wrap: break-word;"></p>
+        </el-col>
       </el-row>
       <!-- 搜索结果展示 -->
 
