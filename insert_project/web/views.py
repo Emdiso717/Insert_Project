@@ -176,3 +176,16 @@ def search_relative_insect(request):
         names = string.split("-")
         print(names)
         return JsonResponse({"data": names}, status=200)  # 成功时直接返回 API 数据
+
+@csrf_exempt
+def get_account(request):
+    data = json.loads(request.body)
+    account = data.get('account')
+    user = User.objects.filter(username=account).first()
+    date_joined = user.date_joined
+
+    chinese_time_str = date_joined.strftime("%Y.%m.%d %A %H:%M:%S")
+
+    information= {'account': user.username,'email':user.email,'date_joined':chinese_time_str}
+    print(user.date_joined)
+    return JsonResponse(information, safe=False)

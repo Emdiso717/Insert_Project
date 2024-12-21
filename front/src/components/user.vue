@@ -21,13 +21,27 @@ export default {
       },
       searchResult: "", // 原始搜索结果
       truncatedResult: "", // 截取后的搜索结果
+      user:{
+        account:'Emdiso717',
+        email:'111111111@email.com'
+      },
     }
   },
   created() {
     this.account = this.$route.query.account;
+    this.get_em();
     wikipedia.setLang("zh");
   },
+
   methods: {
+    get_em(){
+      axios.post("/get_account",
+          {
+            account:this.account,
+          }).then(response => {
+        this.user = response.data;
+      })
+    },
     changeRoute(path) {
       const currentRoute = this.$route;
       this.$router.push({
@@ -74,6 +88,11 @@ export default {
         path: '/result',
         query: {searchQuery: this.searchQuery},
       });
+    },
+    quit(){
+      this.$router.push({
+        path: '/login',
+      });
     }
   },
 
@@ -107,16 +126,85 @@ export default {
         </el-menu-item>
       </el-menu>
     </el-aside>
-    <el-main class="main">
-      <!--   TODO     代码添加在这里-->
+   <el-main class="main">
+<!--      <img class="background" src="./icons/cool-background%20.svg" alt="Description" />-->
+      <div class="card">
+        <p class="font">Userinfo</p>
+        <el-avatar
+            src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" class="avatar"
+        />
+        <p class="form_font po1">用户名：{{user.account}}</p>
+        <p class="form_font po1 po2">用户名：{{user.email}}</p>
+        <el-divider class="divider" />
+        <div class="down" >
+          <el-scrollbar >
+          <div class="down2"  >
 
+          </div>
+          </el-scrollbar>
+          <p class="text mat">注册时间：{{user.date_joined}}</p>
+          <el-button  class="card_button" @click="quit()">
+            <span class="text_button">退出登录</span>
+          </el-button>
+        </div>
+      </div>
     </el-main>
   </el-container>
 </template>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet');
+.form_font{
+  font-family: 'Montserrat', sans-serif;
+  color: #000000;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+  .mat{
+    margin-top: 10px;
+  }
+.text{
+  font-family: 'Montserrat', sans-serif;
+  color: #000000;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+.down{
+  position: relative;
 
+  top:-70px;
+  width: 80%;
+  margin-left: 10%;
+  height: 58%;
+}
+.down2{
+  margin-top: 10px;
+}
+.divider{
+  position: relative;
+  top:-80px;
+  margin-left: 10%;
+  width: 80%;
+}
+.po1{
+  position: relative;
+  top:-80px;
+  left: 200px;
+}
+.po2{
+  margin-top: 10px;
+}
+
+.avatar{
+  margin-left: 60px;
+  margin-top: 30px;
+  height: 80px;
+  width: auto;
+}
 .all {
   position: absolute;
   top: 0;
@@ -183,4 +271,55 @@ export default {
   margin-bottom: 20px;
 }
 
+.card{
+  position:relative;
+  margin-left: 10%;
+  width: 80%;
+  height: 100%;
+  transition: box-shadow 0.3s ease-in-out;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+.card:hover {
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+}
+
+.font{
+  font-family: 'Montserrat', sans-serif;
+  color: #36714a;
+  font-size: 30px;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-align: center;
+}
+.card_button {
+  background-color: #244a31;
+  width: 80px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #36714a;
+  box-shadow: 0 2px 10px rgb(10, 64, 165,0.2);
+  transition: .2s;
+  color: #f5f7f8;
+  margin-left: 1000px;
+}
+.card_button:active,
+.card_button:focus,
+.card_button:hover {
+  background-color: #ffffff;
+  transition: box-shadow 0.3s ease;
+  color: #3f6a53;
+  border-color: #429561;
+  box-shadow: 0 4px 16px rgb(94, 159, 116);
+  border-width: 3px;
+}
+.text_button{
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
 </style>
