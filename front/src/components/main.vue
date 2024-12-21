@@ -40,6 +40,7 @@ export default {
       imageBase64: null,
       image_result:[],
       loading : false,//搜索条目加载中？
+      empty : true,//若啥都没有则加载点图片
     }
   },
   created() {
@@ -63,6 +64,7 @@ export default {
           return;
         }
         this.loading = true;
+        this.empty = false;
         this.searchQuery_show=this.searchQuery;
         this.relativeResultArray = [];
         // 调用 API 并获取数据
@@ -185,6 +187,19 @@ export default {
     </el-aside>
     <el-main class="main">
       <!--   TODO     代码添加在这里-->
+
+      <!--昆虫图片展示-->
+      <div class="page-container" v-if="empty">
+        <div class="block">
+          <span class="demonstration"></span>
+          <el-carousel height="300px">
+            <el-carousel-item v-for="item in 4" :key="item">
+              <h3 class="small">{{ item }}</h3>
+            </el-carousel-item>
+          </el-carousel>
+        </div>
+      </div>
+
       <div class="search-container">
         <input v-model="searchQuery" placeholder="输入关键词" @keyup.enter="Search" class = "search"/>
         <el-button class="search_button" @click="Search" style="margin-left: 1%"><p>搜索</p></el-button>
@@ -217,9 +232,13 @@ export default {
 
       </el-row>
       <!-- 搜索结果展示 -->
-        <div class="loader" v-if="loading">
-          <img src="/loading.gif" alt="Loading" class="loading-image"/>
-        </div>
+
+      <!--加载图片-->
+      <div class="loader" v-if="loading">
+        <img src="/loading.gif" alt="Loading" class="loading-image"/>
+      </div>
+
+      <!--搜索结果-->
       <el-list>
         <template v-if="searchResult">
           <el-card class="result-card" @click="goToDetailPage(searchQuery_show)">
@@ -510,5 +529,71 @@ p{
 .loading-image {
   width: 70px; /* 设置为所需的宽度 */
   height: 70px; /* 设置为 'auto' 可以保持图像比例 */
+}
+
+.el-carousel__item h3 {
+  color: #475669;
+  font-size: 14px;
+  opacity: 0.75;
+  line-height: 150px;
+  margin: 0 auto;
+  max-width: 1500px;
+}
+
+.el-carousel__item:nth-child(1) {
+  font-size: 0px;
+  background-image: url("/insert_1.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  margin: 0 auto;
+  max-width: 1500px;
+  background-color: #99a9bf;
+}
+.el-carousel__item:nth-child(2) {
+  font-size: 0px;
+  background-image: url("/insert_2.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  margin: 0 auto;
+  max-width: 1500px;
+  background-color: #99a9bf;
+}
+.el-carousel__item:nth-child(3) {
+  font-size: 0px;
+  background-image: url("/insert_3.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  margin: 0 auto;
+  max-width: 1500px;
+  background-color: #99a9bf;
+}
+.el-carousel__item:nth-child(4) {
+  font-size: 0px;
+  background-image: url("/insert_4.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  margin: 0 auto;
+  max-width: 1500px;
+  background-color: #99a9bf;
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 从顶部开始 */
+  align-items: center; /* 水平居中 */
+  min-height: 10vh;
+  padding-top: 20px; /* 如果需要，可以调整顶部间距 */
+  padding-bottom: 0; /* 确保底部没有额外间距 */
+  max-height: 350px;
+}
+
+.block {
+  width: 80%;
+  max-width: 1500px;
 }
 </style>
